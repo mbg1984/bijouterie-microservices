@@ -19,6 +19,6 @@ data:
                             #   (mysql.bijouterie.svc.cluster.local)
   DB_PORT: "3306"           # port du Service MySQL
   DB_NAME: "bijouterie"     # doit correspondre à MYSQL_DATABASE
-  SHOP_NAME: "Maison Amina" # nom de la boutique affiché en en-tête du site
+  SHOP_NAME: "Maison Amina Joaillerie" # nom de la boutique affiché en en-tête du site
   CURRENCY: "FCFA"          # devise des prix
   MAX_FILE_SIZE_MB: "5"     # taille max d'une photo (Mo), contrôlée par l'API
