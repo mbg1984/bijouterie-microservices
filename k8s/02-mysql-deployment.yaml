@@ -36,7 +36,7 @@ spec:
         - name: mysql
           # Image construite par Jenkins depuis database/ (mysql:8.4 + init.sql),
           # tag = numéro de build Jenkins (jamais "latest")
-          image: bassirou2024/bijouterie-mysql:2
+          image: bassirou2024/bijouterie-mysql:8
           ports:
             - name: mysql
               containerPort: 3306
