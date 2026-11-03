@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: bassirou2024/bijouterie-backend:1
+          image: bassirou2024/bijouterie-backend:2
           ports:
             - name: http
               containerPort: 3000

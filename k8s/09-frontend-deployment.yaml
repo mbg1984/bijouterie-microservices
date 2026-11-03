@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: bassirou2024/bijouterie-frontend:1
+          image: bassirou2024/bijouterie-frontend:2
           ports:
             - name: http
               containerPort: 80
