@@ -1,0 +1,26 @@
+# =============================================================================
+# Service « mysql » (ClusterIP)
+# -----------------------------------------------------------------------------
+# Adresse IP virtuelle + nom DNS stables (mysql.bijouterie.svc.cluster.local,
+# ou simplement « mysql » depuis le namespace) devant le pod MySQL.
+# ClusterIP = accessible UNIQUEMENT depuis l'intérieur du cluster : la base
+# n'est pas exposée à l'extérieur.
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql                # ce nom est la valeur de DB_HOST du backend
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: database
+spec:
+  type: ClusterIP
+  # Le trafic est envoyé aux pods qui portent ces labels
+  selector:
+    app: bijouterie
+    tier: database
+  ports:
+    - name: mysql
+      port: 3306             # port du Service
+      targetPort: 3306       # port du conteneur MySQL

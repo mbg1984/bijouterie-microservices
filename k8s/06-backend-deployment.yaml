@@ -1,0 +1,73 @@
+# =============================================================================
+# Deployment « backend » : API REST Node.js / Express
+# -----------------------------------------------------------------------------
+# 2 replicas : le backend est sans état (les photos sont stockées dans MySQL),
+# on peut donc le répliquer. Le Service « backend » répartit les requêtes.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bijouterie
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: bijouterie
+        tier: backend
+    spec:
+      containers:
+        - name: backend
+          image: bassirou2024/bijouterie-backend:1
+          ports:
+            - name: http
+              containerPort: 3000
+          # Méthode 1 : envFrom -> toutes les clés de backend-config
+          # (PORT, DB_HOST, DB_PORT, DB_NAME, SHOP_NAME, CURRENCY, MAX_FILE_SIZE_MB)
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          # Méthode 2 : env[].valueFrom -> une variable = une clé précise,
+          # en choisissant explicitement le nom de la variable
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_PASSWORD
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          # Readiness : /api/ready renvoie 503 tant que MySQL n'est pas joignable
+          # -> le pod est retiré des endpoints du Service, sans être redémarré
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          # Liveness : /api/health vérifie seulement que le processus répond
+          # -> en cas d'échec, kubelet redémarre le conteneur
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10

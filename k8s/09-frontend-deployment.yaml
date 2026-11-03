@@ -1,0 +1,62 @@
+# =============================================================================
+# Deployment « frontend » : site web servi par Nginx + reverse proxy /api
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bijouterie
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: bijouterie
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: bassirou2024/bijouterie-frontend:1
+          ports:
+            - name: http
+              containerPort: 80
+          # Méthode 2 : env[].valueFrom.configMapKeyRef -> chaque variable
+          # pointe vers une clé précise de la ConfigMap frontend-config
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: BACKEND_URL
+            - name: MAX_UPLOAD_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: MAX_UPLOAD_SIZE
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          # /healthz est une route Nginx qui renvoie toujours 200 "ok"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10

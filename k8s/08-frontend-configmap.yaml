@@ -1,0 +1,19 @@
+# =============================================================================
+# ConfigMap « frontend-config » : configuration du frontend Nginx
+# -----------------------------------------------------------------------------
+# Au démarrage, l'image nginx remplace ${BACKEND_URL} et ${MAX_UPLOAD_SIZE}
+# dans nginx/default.conf.template par ces valeurs.
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: frontend
+data:
+  BACKEND_URL: "http://backend:3000"  # "backend" = nom du Service ClusterIP du
+                                      # backend, résolu par le DNS du cluster
+  MAX_UPLOAD_SIZE: "6m"               # client_max_body_size de Nginx (> 5 Mo
+                                      # de photo + champs du formulaire)

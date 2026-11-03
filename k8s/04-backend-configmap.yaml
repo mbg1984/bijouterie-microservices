@@ -1,0 +1,24 @@
+# =============================================================================
+# ConfigMap « backend-config » : configuration NON sensible du backend
+# -----------------------------------------------------------------------------
+# Injectée en bloc dans le conteneur backend avec envFrom : chaque clé
+# devient une variable d'environnement du même nom.
+# Toutes les valeurs sont des chaînes (d'où les guillemets autour des nombres).
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: backend
+data:
+  PORT: "3000"              # port d'écoute de l'API Node.js
+  DB_HOST: "mysql"          # = nom du Service MySQL, résolu par le DNS du cluster
+                            #   (mysql.bijouterie.svc.cluster.local)
+  DB_PORT: "3306"           # port du Service MySQL
+  DB_NAME: "bijouterie"     # doit correspondre à MYSQL_DATABASE
+  SHOP_NAME: "Maison Amina" # nom de la boutique affiché en en-tête du site
+  CURRENCY: "FCFA"          # devise des prix
+  MAX_FILE_SIZE_MB: "5"     # taille max d'une photo (Mo), contrôlée par l'API

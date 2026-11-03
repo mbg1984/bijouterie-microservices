@@ -1,0 +1,26 @@
+# =============================================================================
+# Service « frontend » (NodePort)
+# -----------------------------------------------------------------------------
+# NodePort = ouvre le port 30080 sur chaque nœud du cluster et le redirige
+# vers les pods frontend. Avec kind, le port 30080 du nœud est mappé sur
+# localhost:30080 (extraPortMappings) -> site accessible sur
+# http://localhost:30080
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: frontend
+spec:
+  type: NodePort
+  selector:
+    app: bijouterie
+    tier: frontend
+  ports:
+    - name: http
+      port: 80               # port du Service à l'intérieur du cluster
+      targetPort: http       # port 80 du conteneur Nginx
+      nodePort: 30080        # port ouvert sur le nœud (plage 30000-32767)

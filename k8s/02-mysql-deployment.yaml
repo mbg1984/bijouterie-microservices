@@ -1,0 +1,68 @@
+# =============================================================================
+# Deployment « mysql » : base de données MySQL 8.4
+# -----------------------------------------------------------------------------
+# 1 seul replica : plusieurs MySQL indépendants n'auraient pas les mêmes
+# données. Pas de volume persistant : /var/lib/mysql vit dans le conteneur,
+# donc les données sont PERDUES si le pod est recréé (init.sql recrée alors
+# les 8 bijoux de démo).
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: database
+spec:
+  replicas: 1
+  # Recreate : on arrête l'ancien pod AVANT de créer le nouveau (jamais deux
+  # MySQL en même temps pendant une mise à jour).
+  strategy:
+    type: Recreate
+  # Le Deployment gère les pods qui portent ces labels
+  selector:
+    matchLabels:
+      app: bijouterie
+      tier: database
+  # Modèle des pods créés par le Deployment
+  template:
+    metadata:
+      labels:
+        app: bijouterie
+        tier: database
+    spec:
+      containers:
+        - name: mysql
+          # Image construite par Jenkins depuis database/ (mysql:8.4 + init.sql),
+          # tag = numéro de build Jenkins (jamais "latest")
+          image: bassirou2024/bijouterie-mysql:1
+          ports:
+            - name: mysql
+              containerPort: 3306
+          # Méthode 1 : envFrom -> TOUTES les clés du Secret deviennent des
+          # variables d'environnement (MYSQL_ROOT_PASSWORD, MYSQL_DATABASE...)
+          envFrom:
+            - secretRef:
+                name: mysql-secret
+          resources:
+            requests:            # réservé par le scheduler pour placer le pod
+              cpu: 250m
+              memory: 512Mi
+            limits:              # plafond : au-delà de 1Gi le pod est tué (OOMKilled)
+              cpu: "1"
+              memory: 1Gi
+          # Prêt à recevoir du trafic quand le port 3306 accepte les connexions
+          # (pendant l'initialisation, MySQL n'écoute pas encore sur le réseau)
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          # Redémarre le conteneur si le serveur ne répond plus au ping
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1"]
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5

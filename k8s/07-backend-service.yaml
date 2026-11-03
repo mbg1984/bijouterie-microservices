@@ -1,0 +1,24 @@
+# =============================================================================
+# Service « backend » (ClusterIP)
+# -----------------------------------------------------------------------------
+# Nom DNS stable « backend » devant les 2 pods backend ; les requêtes sont
+# réparties entre eux (d'où le champ servedBy qui change sur /api/config).
+# Interne au cluster : seul le frontend (Nginx) appelle le backend.
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend              # utilisé dans BACKEND_URL=http://backend:3000
+  namespace: bijouterie
+  labels:
+    app: bijouterie
+    tier: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: bijouterie
+    tier: backend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http       # port nommé « http » du conteneur (3000)

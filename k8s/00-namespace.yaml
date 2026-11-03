@@ -1,0 +1,12 @@
+# =============================================================================
+# Namespace « bijouterie »
+# -----------------------------------------------------------------------------
+# Espace de noms qui isole toutes les ressources de l'application (pods,
+# services, configmaps, secrets) du reste du cluster (kube-system, argocd...).
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bijouterie
+  labels:
+    app: bijouterie
