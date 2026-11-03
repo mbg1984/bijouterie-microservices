@@ -1,0 +1,41 @@
+# =============================================================================
+# Application Argo CD « bijouterie »
+# -----------------------------------------------------------------------------
+# Argo CD surveille le dossier k8s/ de la branche main du dépôt GitHub et
+# applique son contenu dans le namespace bijouterie du cluster local.
+# Git devient la seule source de vérité (GitOps) : plus de kubectl apply
+# manuel sur le namespace bijouterie.
+#
+# Création (une seule fois) : kubectl apply -f argocd/application.yaml
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bijouterie
+  namespace: argocd          # les Applications vivent dans le namespace d'Argo CD
+  # Si l'Application est supprimée, Argo CD supprime aussi les ressources
+  # qu'elle a déployées (pods, services...) avant de disparaître
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default           # projet Argo CD par défaut (aucune restriction)
+
+  # --- Source : où lire les manifests --------------------------------------
+  source:
+    repoURL: https://github.com/mbg1984/bijouterie-microservices.git  # dépôt public
+    targetRevision: main     # branche principale
+    path: k8s                # dossier des manifests
+
+  # --- Destination : où les déployer ---------------------------------------
+  destination:
+    server: https://kubernetes.default.svc   # le cluster où tourne Argo CD
+    namespace: bijouterie                    # namespace par défaut des ressources
+
+  # --- Politique de synchronisation ----------------------------------------
+  syncPolicy:
+    automated:               # synchronisation automatique à chaque commit
+      prune: true            # supprime du cluster ce qui a été retiré de Git
+      selfHeal: true         # annule les modifications faites à la main
+                             # (ex. kubectl delete svc frontend -> recréé)
+    syncOptions:
+      - CreateNamespace=true # crée le namespace bijouterie s'il n'existe pas
