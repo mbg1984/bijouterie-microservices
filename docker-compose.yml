@@ -1,0 +1,75 @@
+# =============================================================================
+# Lancement local de toute l'application
+#
+#   cp .env.example .env      # (facultatif) personnaliser les valeurs
+#   docker compose up --build
+#   -> http://localhost:8080
+#
+# Remarquez comment chaque service reçoit sa configuration par des
+# variables d'environnement : c'est exactement ce que vous devrez reproduire
+# dans Kubernetes avec des ConfigMaps et des Secrets.
+# =============================================================================
+services:
+
+  # ---------------------------------------------------------------------------
+  # Base de données MySQL
+  # ---------------------------------------------------------------------------
+  mysql:
+    build: ./database
+    image: bijouterie-mysql:local
+    container_name: bijouterie-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-bijouterie}
+      MYSQL_USER: ${DB_USER:-bijoux}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-bijouxpass}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    # Port exposé seulement pour inspecter la base depuis votre machine (optionnel)
+    ports:
+      - "3307:3306"
+
+  # ---------------------------------------------------------------------------
+  # Microservice backend (API REST)
+  # ---------------------------------------------------------------------------
+  backend:
+    build: ./backend
+    image: bijouterie-backend:local
+    container_name: bijouterie-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: mysql            # = nom du service MySQL
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-bijouterie}
+      DB_USER: ${DB_USER:-bijoux}
+      DB_PASSWORD: ${DB_PASSWORD:-bijouxpass}
+      SHOP_NAME: ${SHOP_NAME:-Maison Aurore}
+      CURRENCY: ${CURRENCY:-EUR}
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-5}
+    # Pas de port publié : le backend n'est joignable QUE via le frontend
+
+  # ---------------------------------------------------------------------------
+  # Microservice frontend (Nginx : site + reverse proxy /api)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build: ./frontend
+    image: bijouterie-frontend:local
+    container_name: bijouterie-frontend
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: http://backend:3000   # = nom du service backend + port
+      MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-6m}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  mysql-data:

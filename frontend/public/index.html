@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bijouterie — Bijoux en or</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">◆</span>
+      <div>
+        <h1 id="shopName">Bijouterie</h1>
+        <p class="tagline">Bijoux en or · Fabrication sénégalaise</p>
+      </div>
+    </div>
+    <button class="btn btn-gold" id="btnAdd" type="button">+ Ajouter un bijou</button>
+  </header>
+
+  <section class="hero">
+    <p class="hero-kicker">Catalogue</p>
+    <h2>L'éclat de l'or, pièce par pièce</h2>
+    <p class="hero-text">Gérez la collection : ajoutez, modifiez ou retirez des bijoux et leurs photos.</p>
+  </section>
+
+  <section class="toolbar" aria-label="Filtres">
+    <input id="search" type="search" placeholder="Rechercher un bijou…" aria-label="Rechercher">
+    <div class="chips" id="chips" role="tablist" aria-label="Catégories"></div>
+  </section>
+
+  <main>
+    <p class="status" id="status" role="status"></p>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer class="footer">
+    <span id="servedBy"></span>
+  </footer>
+
+  <!-- Formulaire de création / modification -->
+  <dialog id="dialog" class="dialog">
+    <form id="form" class="form" novalidate>
+      <header class="dialog-head">
+        <h3 id="dialogTitle">Nouveau bijou</h3>
+        <button type="button" class="icon-btn" id="btnClose" aria-label="Fermer">✕</button>
+      </header>
+
+      <div class="form-body">
+        <div class="photo-zone">
+          <img id="preview" alt="Aperçu de la photo" hidden>
+          <div id="previewEmpty" class="preview-empty">Aucune photo</div>
+          <label class="btn btn-ghost file-btn">
+            Choisir une photo
+            <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" hidden>
+          </label>
+          <label class="check" id="removeWrap" hidden>
+            <input type="checkbox" id="supprimerPhoto"> Supprimer la photo actuelle
+          </label>
+          <small class="hint" id="photoHint"></small>
+        </div>
+
+        <div class="fields">
+          <label>Nom
+            <input name="nom" required minlength="2" maxlength="120">
+          </label>
+          <label>Description
+            <textarea name="description" rows="3" maxlength="2000"></textarea>
+          </label>
+          <div class="row">
+            <label>Catégorie
+              <select name="categorie" id="categorie" required></select>
+            </label>
+            <label>Carats
+              <select name="carat" id="carat" required></select>
+            </label>
+          </div>
+          <div class="row">
+            <label>Poids (g)
+              <input name="poids_g" type="number" step="0.01" min="0.01" required>
+            </label>
+            <label>Prix
+              <input name="prix" type="number" step="0.01" min="0" required>
+            </label>
+            <label>Stock
+              <input name="stock" type="number" step="1" min="0" value="1" required>
+            </label>
+          </div>
+          <p class="form-error" id="formError" role="alert"></p>
+        </div>
+      </div>
+
+      <footer class="dialog-foot">
+        <button type="button" class="btn btn-ghost" id="btnCancel">Annuler</button>
+        <button type="submit" class="btn btn-gold" id="btnSave">Enregistrer</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
