@@ -53,9 +53,12 @@ pipeline {
                     // Le commit poussé par le stage « Update manifests » contient
                     // [skip ci] : on ne reconstruit pas les images pour ce commit,
                     // sinon chaque build déclencherait un nouveau build (boucle).
+                    // Seuls les builds lancés par la scrutation Git (pollSCM) sont
+                    // concernés : un build lancé à la main s'exécute toujours.
                     def message = sh(script: 'git log -1 --pretty=%s', returnStdout: true).trim()
-                    env.SKIP_CI = message.contains('[skip ci]') ? 'true' : 'false'
-                    echo "Dernier commit : ${message} (skip ci = ${env.SKIP_CI})"
+                    def parScrutation = !currentBuild.getBuildCauses('hudson.triggers.SCMTrigger$SCMTriggerCause').isEmpty()
+                    env.SKIP_CI = (parScrutation && message.contains('[skip ci]')) ? 'true' : 'false'
+                    echo "Dernier commit : ${message} (déclenché par Git = ${parScrutation}, skip ci = ${env.SKIP_CI})"
                 }
             }
         }
